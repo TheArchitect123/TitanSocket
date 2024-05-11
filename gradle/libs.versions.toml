@@ -4,6 +4,9 @@ kotlin = "1.9.20"
 kotlinSerialisation = "1.9.22"
 androidJavaSocketVersion = "1.0.0"
 titanSocketIoVersion = "0.0.1" # titansocket artifact version number
+droidCompileSdk = "34"
+droidTargetSdk = "34"
+droidMinSdk = "16"
 
 [libraries]
 socketIo = { module = "io.socket:socket.io-client", version.ref = "androidJavaSocketVersion" }

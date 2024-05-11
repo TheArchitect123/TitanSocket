@@ -1,3 +1,5 @@
+import java.util.Base64
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinCocoapods)
@@ -18,6 +20,8 @@ kotlin {
                 jvmTarget = "1.8"
             }
         }
+
+        publishLibraryVariants("release", "debug")
     }
     iosX64()
     iosArm64()
@@ -32,6 +36,7 @@ kotlin {
             baseName = "shared"
             isStatic = true
         }
+
     }
 
     sourceSets {
@@ -62,11 +67,61 @@ kotlin {
     }
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            pom {
+                name = "TitanSocket"
+                description =
+                    "A kotlin multiplatform implementation of a websocket. Supports both iOS & Android"
+                url = "https://github.com/TheArchitect123/TitanSocket"
+                licenses {
+                    license {
+                        name = "MIT"
+                        url = "https://github.com/TheArchitect123/TitanSocket/blob/main/LICENSE"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "danGerchcovich"
+                        name = "Dan Gerchcovich"
+                        email = "dan.developer789@gmail.com"
+                    }
+                }
+                scm {
+                    connection.set("scm:git:ssh://github.com/TheArchitect123/TitanSocket.git")
+                    developerConnection.set("scm:git:ssh://github.com/TheArchitect123/TitanSocket.git")
+                    url.set("https://github.com/TheArchitect123/TitanSocket.git")
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            // change URLs to point to your repos, e.g. http://my.org/repo
+            val releasesRepoUrl = uri(layout.buildDirectory.dir("repos/releases"))
+            val snapshotsRepoUrl = uri(layout.buildDirectory.dir("repos/snapshots"))
+            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+        }
+    }
+    signing {
+        val signingKeyId: String? = System.getenv("SIGNING_KEY_ID")
+        val signingPassword: String? = System.getenv("SIGNING_PASSWORD")
+        val signingKey: String? = System.getenv("SIGNING_KEY")?.let { base64Key ->
+            String(Base64.getDecoder().decode(base64Key))
+        }
+        if (signingKeyId != null) {
+            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+            sign(publishing.publications)
+        }
+    }
+}
+
 android {
     namespace = "com.architect.titansocket"
-    compileSdk = 34
+    compileSdk = libs.versions.droidCompileSdk.get().toInt()
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.droidMinSdk.get().toInt()
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
