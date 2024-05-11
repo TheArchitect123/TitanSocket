@@ -2,7 +2,14 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinCocoapods)
     alias(libs.plugins.androidLibrary)
+    kotlin("plugin.serialization") version "1.9.22"
+
+    id("org.gradle.maven-publish")
+    id("signing")
 }
+
+group = "com.architect.titansocket"
+version = libs.versions.titanSocketIoVersion.get()
 
 kotlin {
     androidTarget {
@@ -26,14 +33,32 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
+        val commonMain by getting
         commonMain.dependencies {
-            //put your multiplatform dependencies here
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+
+        val androidMain by getting {
+            dependsOn(commonMain)
+            dependencies {
+                implementation("io.socket:socket.io-client:2.1.0") {
+                    // excluding org.json which is provided by Android
+                    exclude("org.json", "json")
+                }
+            }
+        }
+
+//        val iosMain by getting {
+//            dependsOn(commonMain)
+//        }
+//        val iosSimulatorArm64Main by getting {
+//            dependsOn(iosMain)
+//        }
     }
 }
 
