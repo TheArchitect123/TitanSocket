@@ -22,12 +22,10 @@ To use TitanSocket, generate an instance of your socket, pass the Url + any Post
 
 ```sh
 val socketConnection = TitanSocket("wss://mysupersecret/websocket"){
-    // my post logic
-}.subscribeOn(Connection){
-    // On Connection
-}
-.subscribeOn(Disconnection){
-    // On any connection failures
+      subscribeOn(TitanSocketEvent.Connection) {
+      }
+      subscribeOn(TitanSocketEvent.Disconnection) {
+      }
 }
 ```
 
