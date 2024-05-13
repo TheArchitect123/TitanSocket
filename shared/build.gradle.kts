@@ -12,10 +12,6 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.28.0"
 }
 
-group = "com.architect.titansocket"
-version = libs.versions.titanSocketIoVersion.get()
-val releaseVersion = !version.toString().endsWith("-SNAPSHOT")
-
 kotlin {
     targetHierarchy.default()
     androidTarget {
