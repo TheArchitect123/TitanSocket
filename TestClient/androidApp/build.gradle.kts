@@ -1,3 +1,9 @@
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
+
+// import the local titansocket library from the local file system
+//include("titanShared")
+//project(":titanShared").projectDir = file("../../../shared")
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
@@ -39,6 +45,7 @@ android {
 }
 
 dependencies {
+    //implementation(projects.titanShared)
     implementation(projects.shared)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
