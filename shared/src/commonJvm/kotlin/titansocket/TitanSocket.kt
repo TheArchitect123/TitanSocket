@@ -56,33 +56,6 @@ actual class TitanSocket actual constructor(
                     }
                 }
             }
-
-            override fun <T> subscribeOn(
-                socketEvent: TitanSocketEvent<T>,
-                action: TitanSocket.(data: T) -> Unit
-            ) {
-                socketEvent.socketIoEvents.forEach { event ->
-                    if (event != TitanSocketEvents.MESSAGE_RECEIVED && event != TitanSocketEvents.MESSAGE_SENDING) {
-                        socketClient.on(event) { data ->
-                            this@TitanSocket.action(socketEvent.mapper(data))
-                        }
-                    } else {
-                        when (event) {
-                            TitanSocketEvents.MESSAGE_RECEIVED -> { // when receiving packets from the web server
-                                socketClient.onAnyIncoming {
-                                    this@TitanSocket.action(socketEvent.mapper(it))
-                                }
-                            }
-
-                            else -> { // on sending of packets
-                                socketClient.onAnyOutgoing {
-                                    this@TitanSocket.action(socketEvent.mapper(it))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }.build()
     }
 

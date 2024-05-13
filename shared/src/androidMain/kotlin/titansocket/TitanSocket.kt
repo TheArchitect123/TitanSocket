@@ -72,13 +72,6 @@ actual class TitanSocket actual constructor(
                     }
                 }
             }
-
-            override fun <T> subscribeOn(
-                socketEvent: TitanSocketEvent<T>,
-                action: TitanSocket.(data: T) -> Unit
-            ) {
-
-            }
         }
 
         socketClient =
