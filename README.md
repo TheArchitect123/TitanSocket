@@ -18,10 +18,9 @@ A kotlin multiplatform library to manage sockets with support for both iOS & And
     <img alt="GitHub" src="https://img.shields.io/badge/targets-JVM,_Android,_iOS-white.svg">
   </a>
   
-    <a href="https://github.com/TheArchitect123/TitanSocket">
+  
     <img alt="GitHub" src="https://img.shields.io/maven-central/v/io.github.thearchitect123/titansocket.svg">
-  </a>
-
+  
 </p
 
 ## How it works
