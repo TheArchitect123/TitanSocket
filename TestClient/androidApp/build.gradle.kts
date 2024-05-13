@@ -45,7 +45,6 @@ android {
 }
 
 dependencies {
-    //implementation(projects.titanShared)
     implementation(projects.shared)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)

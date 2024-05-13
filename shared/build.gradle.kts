@@ -59,13 +59,6 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
-            dependsOn(commonJvm)
-            dependencies {
-                implementation("com.varabyte.truthish:truthish:1.0.1")
-            }
-        }
-
         val jvmMain by getting {
             dependsOn(commonJvm)
         }
