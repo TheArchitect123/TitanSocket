@@ -8,7 +8,7 @@ A kotlin multiplatform library to manage sockets with support for both iOS & And
 
 </p>
 <br/>
-![version](https://img.shields.io/badge/version-1.0.1-blue.svg)
+![version](https://img.shields.io/badge/version-0.0.2-blue)
 ![targets](https://img.shields.io/badge/targets-JVM,_Android,_iOS-white.svg)
 
 ## How it works
