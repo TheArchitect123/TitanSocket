@@ -64,7 +64,12 @@ kotlin {
         }
 
         val androidMain by getting {
-            dependsOn(commonJvm)
+            dependsOn(commonMain)
+            dependencies {
+                implementation("dev.icerock.moko:mvvm-livedata:0.16.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+                implementation("dev.gustavoavila:java-android-websocket-client:2.0.2")
+            }
         }
 
 //        // iOS Targets
@@ -89,7 +94,7 @@ afterEvaluate {
         coordinates(
             groupId = "io.github.thearchitect123",
             artifactId = "titansocket",
-            version = "0.0.2"
+            version = "0.0.5"
         )
 
         // Configure POM metadata for the published artifact
