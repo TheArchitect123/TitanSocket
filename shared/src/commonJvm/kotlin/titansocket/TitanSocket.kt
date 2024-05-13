@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import org.json.JSONArray
 import org.json.JSONObject
+import java.net.URI
 import io.socket.client.Socket as TitanSocketIO
 
 actual class TitanSocket actual constructor(
@@ -17,7 +18,7 @@ actual class TitanSocket actual constructor(
     private val socketClient: TitanSocketIO
 
     init {
-        socketClient = IO.socket(endpoint, IO.Options().apply {
+        socketClient = IO.socket(URI.create(endpoint), IO.Options().apply {
             transports = config?.transport?.let {
                 when (it) {
                     TitanSocketOptions.Transport.DEFAULT -> return@let null

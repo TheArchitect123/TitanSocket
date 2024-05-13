@@ -1,4 +1,4 @@
-import java.util.Base64
+import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,10 +9,12 @@ plugins {
     id("org.gradle.maven-publish")
     id("signing")
     id("maven-publish")
+    id("com.vanniktech.maven.publish") version "0.28.0"
 }
 
 group = "com.architect.titansocket"
 version = libs.versions.titanSocketIoVersion.get()
+val releaseVersion = !version.toString().endsWith("-SNAPSHOT")
 
 kotlin {
     targetHierarchy.default()
@@ -69,7 +71,7 @@ kotlin {
             dependsOn(commonJvm)
         }
 
-        // iOS Targets
+//        // iOS Targets
         val iosMain by getting {
             dependsOn(commonMain)
         }
@@ -84,77 +86,55 @@ kotlin {
         }
     }
 }
-//
-//publishing {
-//    publications {
-//        create<MavenPublication>("mavenJava") {
-//            pom {
-//                name = "TitanSocket"
-//                description =
-//                    "A kotlin multiplatform implementation of a websocket. Supports both iOS & Android"
-//                url = "https://github.com/TheArchitect123/TitanSocket"
-//                licenses {
-//                    license {
-//                        name = "MIT"
-//                        url = "https://github.com/TheArchitect123/TitanSocket/blob/main/LICENSE"
-//                    }
-//                }
-//                developers {
-//                    developer {
-//                        id = "danGerchcovich"
-//                        name = "Dan Gerchcovich"
-//                        email = "dan.developer789@gmail.com"
-//                    }
-//                }
-//                scm {
-//                    connection.set("scm:git:ssh://github.com/TheArchitect123/TitanSocket.git")
-//                    developerConnection.set("scm:git:ssh://github.com/TheArchitect123/TitanSocket.git")
-//                    url.set("https://github.com/TheArchitect123/TitanSocket.git")
-//                }
-//            }
-//        }
-//    }
-//    repositories {
-//        maven {
-//// change URLs to point to your repos, e.g. http://my.org/repo
-//            val releasesRepoUrl = uri(layout.buildDirectory.dir("repos/releases"))
-//            val snapshotsRepoUrl = uri(layout.buildDirectory.dir("repos/snapshots"))
-//            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
-//        }
-//    }
-//    signing {
-//        val signingKeyId: String? = System.getenv("SIGNING_KEY_ID")
-//        val signingPassword: String? = System.getenv("SIGNING_PASSWORD")
-//        val signingKey: String? = System.getenv("SIGNING_KEY")?.let { base64Key ->
-//            String(Base64.getDecoder().decode(base64Key))
-//        }
-//        if (signingKeyId != null) {
-//            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-//            sign(publishing.publications)
-//        }
-//    }
-//}
 
-publishing {
-    repositories {
-        maven {
-            name = "TitanSocket"
-            url = uri("https://maven.pkg.github.com/TheArchitect123/TitanSocket")
-            credentials {
-                username = project.findProperty("gpr.user").toString() ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key").toString() ?: System.getenv("TOKEN")
+afterEvaluate {
+    mavenPublishing {
+        // Define coordinates for the published artifact
+        coordinates(
+            groupId = "io.github.thearchitect123",
+            artifactId = "titansocket",
+            version = "0.0.2"
+        )
+
+        // Configure POM metadata for the published artifact
+        pom {
+            name.set("TitanSocket")
+            description.set("A kotlin multiplatform implementation of a websocket. Supports both iOS & Android")
+            inceptionYear.set("2024")
+            url.set("https://github.com/TheArchitect123/TitanSocket")
+
+            licenses {
+                license {
+                    name.set("MIT")
+                    url.set("https://opensource.org/licenses/MIT")
+                }
+            }
+
+            // Specify developers information
+            developers {
+                developer {
+                    id.set("Dan Gerchcovich")
+                    name.set("TheArchitect123")
+                    email.set("dan.developer789@gmail.com")
+                }
+            }
+
+            // Specify SCM information
+            scm {
+                url.set("https://github.com/TheArchitect123/TitanSocket")
             }
         }
+
+        // Configure publishing to Maven Central
+        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+        // Enable GPG signing for all publications
+        signAllPublications()
     }
-//    publications {
-//        gpr(MavenPublication) {
-//            from(components.java)
-//        }
-//    }
 }
 
 android {
-    namespace = "com.architect.titansocket"
+    namespace = "io.github.thearchitect123"
     compileSdk = libs.versions.droidCompileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.droidMinSdk.get().toInt()
