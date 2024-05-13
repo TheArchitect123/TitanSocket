@@ -8,8 +8,14 @@ A kotlin multiplatform library to manage sockets with support for both iOS & And
 
 </p>
 <br/>
-![version](https://img.shields.io/badge/version-0.0.2-blue)
-![targets](https://img.shields.io/badge/targets-JVM,_Android,_iOS-white.svg)
+
+  <a href="https://github.com/TheArchitect123/TitanSocket">
+    <img alt="GitHub" src="https://img.shields.io/badge/version-0.0.2-blue.svg">
+  </a>
+
+  <a href="https://github.com/TheArchitect123/TitanSocket">
+    <img alt="GitHub" src="https://img.shields.io/badge/targets-JVM,_Android,_iOS-white.svg">
+  </a>
 
 ## How it works
 TitanSocket handles all the websocket connections, ping & pong between the client & server, and the event notifications for when data is received or broadcasted, or any connectivity status changes happen.
