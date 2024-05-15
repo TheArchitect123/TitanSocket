@@ -1,31 +1,30 @@
 package com.architect.titansocket
 
-import dev.gustavoavila.websocketclient.WebSocketClient
 import dev.icerock.moko.mvvm.livedata.MutableLiveData
-import dev.icerock.moko.mvvm.livedata.postValue
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import org.json.JSONArray
-import org.json.JSONObject
-import java.net.URI
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.WebSocket
 
 actual class TitanSocket actual constructor(
     endpoint: String,
     config: TitanSocketOptions?,
     build: TitanSocketBuilder.() -> Unit
 ) {
-    private val socketClient: WebSocketClient
+    private val webSocketListener = TitanWebSocketListener(this)
+    private val okHttpClient = OkHttpClient()
+    private var webSocket: WebSocket? = null
+
+    val onOpen = MutableLiveData<Boolean?>(null)
+    val onClosed = MutableLiveData<Boolean?>(null)
+    val onFailure = MutableLiveData<Exception?>(null)
+    val onDataReceived = MutableLiveData<String?>(null)
+    val onBinaryReceived = MutableLiveData<ByteArray?>(null)
+    val onPingSent = MutableLiveData<String?>(null)
 
     init {
-        val titanBuilder = object : TitanSocketBuilder {
-            val onOpen = MutableLiveData<Boolean?>(null)
-            val onClosed = MutableLiveData<Boolean?>(null)
-            val onFailure = MutableLiveData<Exception?>(null)
-            val onDataReceived = MutableLiveData<String?>(null)
-            val onBinaryReceived = MutableLiveData<ByteArray?>(null)
-            val onPingSent = MutableLiveData<String?>(null)
-            val onPongReceived = MutableLiveData<String?>(null)
-
+        object : TitanSocketBuilder {
             override fun subscribeOn(event: String, action: TitanSocket.(message: String) -> Unit) {
                 when (event) {
                     TitanSocketEvents.MESSAGE_SENDING -> {
@@ -43,6 +42,15 @@ actual class TitanSocket actual constructor(
                             }
                         }
                     }
+
+                    TitanSocketEvents.MESSAGE_BINARY_RECEIVED -> {
+                        onBinaryReceived.addObserver {
+                            if (it != null) {
+                                this@TitanSocket.action(it.decodeToString())
+                            }
+                        }
+                    }
+
 
                     TitanSocketEvents.CONNECTION_OPENED -> {
                         onOpen.addObserver {
@@ -72,64 +80,39 @@ actual class TitanSocket actual constructor(
                     }
                 }
             }
-        }
+        }.build()
 
-        socketClient =
-            object : WebSocketClient(URI(endpoint)) {
-                override fun onOpen() {
-                    titanBuilder.onOpen.postValue(true)
-                }
+        webSocket = okHttpClient.newWebSocket(createRequest(endpoint), webSocketListener)
+    }
 
-                override fun onTextReceived(message: String) {
-                    titanBuilder.onDataReceived.postValue(message)
-                }
-
-                override fun onBinaryReceived(data: ByteArray) {
-                    titanBuilder.onBinaryReceived.postValue(data)
-                }
-
-                override fun onPingReceived(data: ByteArray) {
-                    titanBuilder.onPingSent.postValue(data.decodeToString())
-                }
-
-                override fun onPongReceived(data: ByteArray) {
-                    titanBuilder.onPongReceived.postValue(data.decodeToString())
-                }
-
-                override fun onException(e: Exception) {
-                    titanBuilder.onFailure.postValue(e)
-                }
-
-                override fun onCloseReceived(reason: Int, description: String?) {
-                    titanBuilder.onClosed.postValue(true)
-                }
-            }
-
-        //socketClient.setConnectTimeout(10000)
-        //socketClient.setReadTimeout(60000)
-        socketClient.addHeader("Origin", "*")
-        socketClient.enableAutomaticReconnection(5000)
-        titanBuilder.build()
+    private fun createRequest(webSocketUrl: String): Request {
+        return Request.Builder()
+            .url(webSocketUrl)
+            .build()
     }
 
     actual fun broadcast(event: String, data: JsonObject) {
-        socketClient.send(JSONObject(data.toString()).toString())
+        //socketClient.send(JSONObject(data.toString()).toString())
     }
 
     actual fun broadcast(event: String, data: JsonArray) {
-        socketClient.send(JSONArray(data.toString()).toString())
+        //webSocket?.send(messageET.text.toString())
     }
 
     actual fun broadcast(event: String, data: String) {
-        socketClient.send(data)
+        webSocket?.send(data)
     }
 
+//    actual fun broadcast(event: String, data: ByteArray) {
+//        webSocket?.send(data.toByteString())
+//    }
+
+
     actual fun disconnectSocket() {
-        socketClient.close(0, 0, "")
+        webSocket?.close(1000, "Canceled manually.")
     }
 
     actual fun connectSocket() {
-        socketClient.connect()
     }
 
     actual fun isSocketConnected(): Boolean {
