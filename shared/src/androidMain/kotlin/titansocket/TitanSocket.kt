@@ -6,14 +6,31 @@ import kotlinx.serialization.json.JsonObject
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSession
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 actual class TitanSocket actual constructor(
     endpoint: String,
     config: TitanSocketOptions?,
     build: TitanSocketBuilder.() -> Unit
 ) {
+    private val trustAllCerts = arrayOf<TrustManager>(
+        object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun getAcceptedIssuers(): Array<X509Certificate> {
+                return arrayOf()
+            }
+        }
+    )
+    private val endpointUrl: String
     private val webSocketListener = TitanWebSocketListener(this)
-    private val okHttpClient = OkHttpClient()
+    private var okHttpClient = OkHttpClient()
     private var webSocket: WebSocket? = null
 
     val onOpen = MutableLiveData<Boolean?>(null)
@@ -24,6 +41,19 @@ actual class TitanSocket actual constructor(
     val onPingSent = MutableLiveData<String?>(null)
 
     init {
+        endpointUrl = endpoint
+        if (config != null && config.trustAllCerts) {
+            val sslContext = SSLContext.getInstance("SSL")
+            sslContext.init(null, trustAllCerts, SecureRandom())
+
+            okHttpClient = OkHttpClient.Builder()
+                .hostnameVerifier(HostnameVerifier { hostname: String?, session: SSLSession? -> true })
+                .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+                .addInterceptor(LoggingInterceptor())
+                .addNetworkInterceptor(LoggingInterceptor())
+                .build();
+        }
+
         object : TitanSocketBuilder {
             override fun subscribeOn(event: String, action: TitanSocket.(message: String) -> Unit) {
                 when (event) {
@@ -81,8 +111,6 @@ actual class TitanSocket actual constructor(
                 }
             }
         }.build()
-
-        webSocket = okHttpClient.newWebSocket(createRequest(endpoint), webSocketListener)
     }
 
     private fun createRequest(webSocketUrl: String): Request {
@@ -113,6 +141,7 @@ actual class TitanSocket actual constructor(
     }
 
     actual fun connectSocket() {
+        webSocket = okHttpClient.newWebSocket(createRequest(endpointUrl), webSocketListener)
     }
 
     actual fun isSocketConnected(): Boolean {
