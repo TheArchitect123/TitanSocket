@@ -1,3 +1,4 @@
+@file:JvmName("TitanSocketJvm")
 package com.architect.titansocket
 
 import kotlinx.serialization.json.JsonArray
