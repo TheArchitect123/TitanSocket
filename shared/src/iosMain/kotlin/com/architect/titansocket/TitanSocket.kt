@@ -26,6 +26,9 @@ actual class TitanSocket actual constructor(
     actual fun isSocketConnected(): Boolean {
         return false
     }
+
+    actual fun broadcast(event: String, data: ByteArray) {
+    }
 }
 
 

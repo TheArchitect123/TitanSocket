@@ -1,5 +1,3 @@
-package com.architect.titansocket
-
 import dev.icerock.moko.mvvm.livedata.MutableLiveData
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject

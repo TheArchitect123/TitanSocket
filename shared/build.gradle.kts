@@ -26,7 +26,7 @@ kotlin {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    //jvm()
+    jvm()
 
     cocoapods {
         summary = "Some description for the Shared Module"
@@ -46,18 +46,18 @@ kotlin {
             }
         }
 
-//        val commonJvm by creating {
-//            dependsOn(commonMain)
-//            dependencies {
-//                implementation("com.squareup.okhttp3:okhttp:4.12.0")
-//                implementation("dev.icerock.moko:mvvm-livedata:0.16.1")
-//                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-//            }
-//        }
+        val commonJvm by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation("com.squareup.okhttp3:okhttp:4.12.0")
+                implementation("dev.icerock.moko:mvvm-livedata:0.16.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+            }
+        }
 
-//        val jvmMain by getting {
-//            dependsOn(commonJvm)
-//        }
+        val jvmMain by getting {
+            dependsOn(commonJvm)
+        }
 
         val androidMain by getting {
             dependsOn(commonMain)
@@ -90,7 +90,7 @@ afterEvaluate {
         coordinates(
             groupId = "io.github.thearchitect123",
             artifactId = "titansocket",
-            version = "0.1.3"
+            version = "0.1.6"
         )
 
         // Configure POM metadata for the published artifact
