@@ -1,4 +1,5 @@
 @file:JvmName("TitanSocketJvm")
+
 package com.architect.titansocket
 
 import kotlinx.serialization.json.JsonArray
@@ -121,7 +122,6 @@ actual class TitanSocket actual constructor(
         if (loggingBuilder != null) {
             object : TitanSocketLoggingBuilder {
                 override fun onSendRequestWebSocket(
-                    message: String,
                     action: TitanSocket.(message: String) -> Unit
                 ) {
                     loggingSocketEventsList.add(
@@ -133,7 +133,6 @@ actual class TitanSocket actual constructor(
                 }
 
                 override fun onReceiveResponseWebSocket(
-                    message: String,
                     action: TitanSocket.(message: String) -> Unit
                 ) {
                     loggingSocketEventsList.add(

@@ -84,7 +84,7 @@ afterEvaluate {
         coordinates(
             groupId = "io.github.thearchitect123",
             artifactId = "titansocket",
-            version = "0.1.6"
+            version = "0.1.7"
         )
 
         // Configure POM metadata for the published artifact
