@@ -31,8 +31,7 @@ implementation("io.github.thearchitect123:titansocket:0.1.7")
 To use TitanSocket, generate an instance of your socket, pass the Url + any Post Connection Logic, and subscribe to the states you wish to connect to:
 
 ```sh
-val socketConnection = TitanSocket(
-            setupWebSockets(),
+val socketConnection = TitanSocket("wss://mysupersecret/websocket")
             {
                 subscribeOn(TitanSocketEvents.CONNECTION_OPENED) {
                 }
