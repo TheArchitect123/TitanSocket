@@ -48,6 +48,26 @@ To use TitanSocket, generate an instance of your socket, pass the Url + any Post
 }
 ```
 
+Connect your telemetry Endpoints into TitanSocket to listen to Ping & Pong events.
+
+```sh
+ val socketConnection = TitanSocket("wss://mysupersecret/websocket") {
+     subscribeOn(TitanSocketEvents.CONNECTION_OPENED) {}
+     subscribeOn(TitanSocketEvents.DISCONNECTION) {}
+     subscribeOn(TitanSocketEvents.FAILURE) {}
+     subscribeOn(TitanSocketEvents.MESSAGE_BINARY_RECEIVED) {}
+     subscribeOn(TitanSocketEvents.MESSAGE_RECEIVED) {}
+     subscribeOn(TitanSocketEvents.MESSAGE_SENDING) {}
+}) {
+     onReceiveResponseWebSocket() {
+        println("RESPONSE $it")
+     }
+     onSendRequestWebSocket() {
+        println("REQUEST $it")
+     }
+}
+```
+
 Make sure to close your web socket connection after you are done with it to avoid battery issues.
 
 ```sh
