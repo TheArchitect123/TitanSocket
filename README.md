@@ -68,6 +68,12 @@ Connect your telemetry Endpoints into TitanSocket to listen to Ping & Pong event
 }
 ```
 
+After your Socket is configured, startup the connection.
+
+```sh
+ socketConnection.connectSocket()
+```
+
 Make sure to close your web socket connection after you are done with it to avoid battery issues.
 
 ```sh
