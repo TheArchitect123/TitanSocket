@@ -18,7 +18,8 @@ import javax.net.ssl.X509TrustManager
 actual class TitanSocket actual constructor(
     endpoint: String,
     config: TitanSocketOptions?,
-    build: TitanSocketBuilder.() -> Unit
+    build: TitanSocketBuilder.() -> Unit,
+    loggingBuilder: TitanSocketBuilder.() -> Unit?
 ) {
     private val trustAllCerts = arrayOf<TrustManager>(
         object : X509TrustManager {

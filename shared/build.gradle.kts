@@ -50,7 +50,6 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation("com.squareup.okhttp3:okhttp:4.12.0")
-                implementation("dev.icerock.moko:mvvm-livedata:0.16.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
             }
         }
@@ -60,12 +59,7 @@ kotlin {
         }
 
         val androidMain by getting {
-            dependsOn(commonMain)
-            dependencies {
-                implementation("com.squareup.okhttp3:okhttp:4.12.0")
-                implementation("dev.icerock.moko:mvvm-livedata:0.16.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-            }
+            dependsOn(commonJvm)
         }
 
 //        // iOS Targets

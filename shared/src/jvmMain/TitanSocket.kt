@@ -1,3 +1,6 @@
+import com.architect.titansocket.TitanSocketBuilder
+import com.architect.titansocket.TitanSocketEvents
+import com.architect.titansocket.TitanSocketOptions
 import dev.icerock.moko.mvvm.livedata.MutableLiveData
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject

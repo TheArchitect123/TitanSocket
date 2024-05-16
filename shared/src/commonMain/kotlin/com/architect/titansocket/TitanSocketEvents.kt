@@ -8,3 +8,4 @@ object TitanSocketEvents{
     const val MESSAGE_BINARY_RECEIVED = "MESSAGE_BINARY_RECEIVED"
     const val MESSAGE_SENDING = "MESSAGE_SENDING"
 }
+

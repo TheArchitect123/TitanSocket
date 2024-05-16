@@ -1,91 +1,150 @@
 package com.architect.titansocket
 
-import dev.icerock.moko.mvvm.livedata.MutableLiveData
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
 import okio.ByteString.Companion.toByteString
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSession
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
+typealias ClientAction = TitanSocket.(message: String) -> Unit
 
 actual class TitanSocket actual constructor(
     endpoint: String,
     config: TitanSocketOptions?,
-    build: TitanSocketBuilder.() -> Unit
+    build: TitanSocketBuilder.() -> Unit,
+    loggingBuilder: Logger?
 ) {
+    private val trustAllCerts = arrayOf<TrustManager>(
+        object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun getAcceptedIssuers(): Array<X509Certificate> {
+                return arrayOf()
+            }
+        }
+    )
+    private val endpointUrl: String
     private val webSocketListener = TitanWebSocketListener(this)
-    private val okHttpClient = OkHttpClient()
+    private var okHttpClient = OkHttpClient()
     private var webSocket: WebSocket? = null
 
-    val onOpen = MutableLiveData<Boolean?>(null)
-    val onClosed = MutableLiveData<Boolean?>(null)
-    val onFailure = MutableLiveData<Exception?>(null)
-    val onDataReceived = MutableLiveData<String?>(null)
-    val onBinaryReceived = MutableLiveData<ByteArray?>(null)
-    val onPingSent = MutableLiveData<String?>(null)
-    val onPongReceived = MutableLiveData<String?>(null)
+    // notifications
+    val socketEventsList = mutableListOf<Pair<String, ClientAction>>()
+    val loggingSocketEventsList = mutableListOf<Pair<String, ClientAction>>()
 
     init {
+        endpointUrl = endpoint
+        if (config != null && config.trustAllCerts) {
+            val sslContext = SSLContext.getInstance("SSL")
+            sslContext.init(null, trustAllCerts, SecureRandom())
+
+            okHttpClient = OkHttpClient.Builder()
+                .hostnameVerifier(HostnameVerifier { hostname: String?, session: SSLSession? -> true })
+                .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+                .addInterceptor(LoggingInterceptor(this))
+                .addNetworkInterceptor(LoggingInterceptor(this))
+                .build();
+        }
+
         object : TitanSocketBuilder {
             override fun subscribeOn(event: String, action: TitanSocket.(message: String) -> Unit) {
                 when (event) {
                     TitanSocketEvents.MESSAGE_SENDING -> {
-                        onPingSent.addObserver {
-                            if (it != null) {
-                                this@TitanSocket.action(it)
-                            }
-                        }
+                        socketEventsList.add(
+                            Pair(
+                                TitanSocketEvents.MESSAGE_SENDING,
+                                action
+                            )
+                        )
                     }
 
                     TitanSocketEvents.MESSAGE_RECEIVED -> {
-                        onDataReceived.addObserver {
-                            if (it != null) {
-                                this@TitanSocket.action(it)
-                            }
-                        }
+                        socketEventsList.add(
+                            Pair(
+                                TitanSocketEvents.MESSAGE_RECEIVED,
+                                action
+                            )
+                        )
                     }
 
                     TitanSocketEvents.MESSAGE_BINARY_RECEIVED -> {
-                        onBinaryReceived.addObserver {
-                            if (it != null) {
-                                this@TitanSocket.action(it.decodeToString())
-                            }
-                        }
+                        socketEventsList.add(
+                            Pair(
+                                TitanSocketEvents.MESSAGE_BINARY_RECEIVED,
+                                action
+                            )
+                        )
                     }
 
 
                     TitanSocketEvents.CONNECTION_OPENED -> {
-                        onOpen.addObserver {
-                            if (it != null) {
-                                this@TitanSocket.action("WEBSOCKET IS OPEN")
-                            }
-                        }
+
+                        socketEventsList.add(
+                            Pair(
+                                TitanSocketEvents.CONNECTION_OPENED,
+                                action
+                            )
+                        )
                     }
 
                     TitanSocketEvents.DISCONNECTION -> {
-                        onClosed.addObserver {
-                            if (it != null) {
-                                this@TitanSocket.action("WEBSOCKET IS CLOSED")
-                            }
-                        }
+                        socketEventsList.add(
+                            Pair(
+                                TitanSocketEvents.DISCONNECTION,
+                                action
+                            )
+                        )
                     }
 
                     else -> { // on Failure
-                        onFailure.addObserver {
-                            if (it != null) {
-                                this@TitanSocket.action(
-                                    it.message
-                                        ?: "WEBSOCKET FAILURE HAS OCCURRED, NO EXCEPTION FOUND"
-                                )
-                            }
-                        }
+                        socketEventsList.add(
+                            Pair(
+                                TitanSocketEvents.FAILURE,
+                                action
+                            )
+                        )
                     }
                 }
             }
         }.build()
 
-        webSocket = okHttpClient.newWebSocket(createRequest(endpoint), webSocketListener)
+
+        if (loggingBuilder != null) {
+            object : TitanSocketLoggingBuilder {
+                override fun onSendRequestWebSocket(
+                    message: String,
+                    action: TitanSocket.(message: String) -> Unit
+                ) {
+                    loggingSocketEventsList.add(
+                        Pair(
+                            TitanSocketTelemetryEvents.REQUEST_SENT,
+                            action
+                        )
+                    )
+                }
+
+                override fun onReceiveResponseWebSocket(
+                    message: String,
+                    action: TitanSocket.(message: String) -> Unit
+                ) {
+                    loggingSocketEventsList.add(
+                        Pair(
+                            TitanSocketTelemetryEvents.RESPONSE_RECEIVED,
+                            action
+                        )
+                    )
+                }
+
+            }.loggingBuilder()
+        }
     }
 
     private fun createRequest(webSocketUrl: String): Request {
@@ -116,6 +175,7 @@ actual class TitanSocket actual constructor(
     }
 
     actual fun connectSocket() {
+        webSocket = okHttpClient.newWebSocket(createRequest(endpointUrl), webSocketListener)
     }
 
     actual fun isSocketConnected(): Boolean {
