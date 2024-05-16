@@ -25,20 +25,53 @@ TitanSocket handles all the websocket connections, ping & pong between the clien
 To get started, import the library into your project:
 
 ```sh
-implementation("io.github.thearchitect123:titansocket:0.0.6")
+implementation("io.github.thearchitect123:titansocket:0.1.7")
 ```
 
 To use TitanSocket, generate an instance of your socket, pass the Url + any Post Connection Logic, and subscribe to the states you wish to connect to:
 
 ```sh
-val socketConnection = TitanSocket("wss://mysupersecret/websocket"){
-      subscribeOn(TitanSocketEvents.CONNECTION_OPENED) {
-      }
-      subscribeOn(TitanSocketEvents.DISCONNECTION) {
-      }
-      subscribeOn(TitanSocketEvents.FAILURE) {
-      }
+ val socketConnection = TitanSocket("wss://mysupersecret/websocket") {
+     subscribeOn(TitanSocketEvents.CONNECTION_OPENED) {}
+     subscribeOn(TitanSocketEvents.DISCONNECTION) {}
+     subscribeOn(TitanSocketEvents.FAILURE) {}
+     subscribeOn(TitanSocketEvents.MESSAGE_BINARY_RECEIVED) {}
+     subscribeOn(TitanSocketEvents.MESSAGE_RECEIVED) {}
+     subscribeOn(TitanSocketEvents.MESSAGE_SENDING) {}
+}) {
+     onReceiveResponseWebSocket() {
+        println("RESPONSE $it")
+     }
+     onSendRequestWebSocket() {
+        println("REQUEST $it")
+     }
 }
+```
+
+Connect your telemetry Endpoints into TitanSocket to listen to Ping & Pong events.
+
+```sh
+ val socketConnection = TitanSocket("wss://mysupersecret/websocket") {
+     subscribeOn(TitanSocketEvents.CONNECTION_OPENED) {}
+     subscribeOn(TitanSocketEvents.DISCONNECTION) {}
+     subscribeOn(TitanSocketEvents.FAILURE) {}
+     subscribeOn(TitanSocketEvents.MESSAGE_BINARY_RECEIVED) {}
+     subscribeOn(TitanSocketEvents.MESSAGE_RECEIVED) {}
+     subscribeOn(TitanSocketEvents.MESSAGE_SENDING) {}
+}) {
+     onReceiveResponseWebSocket() {
+        println("RESPONSE $it")
+     }
+     onSendRequestWebSocket() {
+        println("REQUEST $it")
+     }
+}
+```
+
+After your Socket is configured, startup the connection.
+
+```sh
+ socketConnection.connectSocket()
 ```
 
 Make sure to close your web socket connection after you are done with it to avoid battery issues.
