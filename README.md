@@ -38,14 +38,7 @@ To use TitanSocket, generate an instance of your socket, pass the Url + any Post
      subscribeOn(TitanSocketEvents.MESSAGE_BINARY_RECEIVED) {}
      subscribeOn(TitanSocketEvents.MESSAGE_RECEIVED) {}
      subscribeOn(TitanSocketEvents.MESSAGE_SENDING) {}
-}) {
-     onReceiveResponseWebSocket() {
-        println("RESPONSE $it")
-     }
-     onSendRequestWebSocket() {
-        println("REQUEST $it")
-     }
-}
+})
 ```
 
 Connect your telemetry Endpoints into TitanSocket to listen to Ping & Pong events.
