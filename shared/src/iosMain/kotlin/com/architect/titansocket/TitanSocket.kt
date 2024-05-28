@@ -3,6 +3,7 @@ package com.architect.titansocket
 import platform.Foundation.NSString
 import platform.Foundation.NSURL.Companion.URLWithString
 import platform.Foundation.NSURLSession
+import platform.Foundation.NSURLSessionConfiguration
 import platform.Foundation.NSURLSessionWebSocketMessage
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.create
@@ -14,7 +15,7 @@ actual class TitanSocket actual constructor(
     loggingBuilder: Logger?
 ) {
     private var webSocketClient =
-        NSURLSession.sharedSession.webSocketTaskWithURL(URLWithString(endpoint)!!)
+         NSURLSession.sessionWithConfiguration(NSURLSessionConfiguration.defaultSessionConfiguration).webSocketTaskWithURL(URLWithString(endpoint)!!)
 
     // notifications
     val socketEventsList = mutableListOf<Pair<String, ClientAction>>()
