@@ -32,7 +32,7 @@ kotlin {
         summary = "Some description for the Shared Module"
         homepage = "Link to the Shared Module homepage"
         version = "1.0"
-        ios.deploymentTarget = "11.0"
+        ios.deploymentTarget = "13.0"
         framework {
             baseName = "shared"
             isStatic = true
@@ -84,7 +84,7 @@ afterEvaluate {
         coordinates(
             groupId = "io.github.thearchitect123",
             artifactId = "titansocket",
-            version = "0.1.7"
+            version = "0.1.9"
         )
 
         // Configure POM metadata for the published artifact

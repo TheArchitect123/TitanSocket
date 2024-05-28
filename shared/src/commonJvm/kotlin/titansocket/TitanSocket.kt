@@ -16,8 +16,6 @@ import javax.net.ssl.SSLSession
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
-typealias ClientAction = TitanSocket.(message: String) -> Unit
-
 actual class TitanSocket actual constructor(
     endpoint: String,
     config: TitanSocketOptions?,
@@ -153,19 +151,11 @@ actual class TitanSocket actual constructor(
             .build()
     }
 
-    actual fun broadcast(event: String, data: JsonObject) {
-        //socketClient.send(JSONObject(data.toString()).toString())
-    }
-
-    actual fun broadcast(event: String, data: JsonArray) {
-        //webSocket?.send(messageET.text.toString())
-    }
-
-    actual fun broadcast(event: String, data: String) {
+    actual fun broadcast(data: String) {
         webSocket?.send(data)
     }
 
-    actual fun broadcast(event: String, data: ByteArray) {
+    actual fun broadcast(data: ByteArray) {
         webSocket?.send(data.toByteString())
     }
 
