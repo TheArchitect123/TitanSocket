@@ -2,8 +2,6 @@
 
 package com.architect.titansocket
 
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket

@@ -1,14 +1,18 @@
 package com.architect.titansocket
 
+import platform.Foundation.NSData
 import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSString
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLSession
 import platform.Foundation.NSURLSessionConfiguration
+import platform.Foundation.NSURLSessionWebSocketCloseCode
 import platform.Foundation.NSURLSessionWebSocketDelegateProtocol
 import platform.Foundation.NSURLSessionWebSocketMessage
+import platform.Foundation.NSURLSessionWebSocketTask
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.create
+import platform.darwin.NSObject
 
 actual class TitanSocket actual constructor(
     endpoint: String,
@@ -16,6 +20,7 @@ actual class TitanSocket actual constructor(
     build: TitanSocketBuilder.() -> Unit,
     loggingBuilder: Logger?
 ) {
+    private val parentTitan = this
     private val endpointUrl = endpoint
     private val webSocketClient = NSURLSession.sessionWithConfiguration(
         configuration = NSURLSessionConfiguration.defaultSessionConfiguration(),
@@ -25,8 +30,8 @@ actual class TitanSocket actual constructor(
                 webSocketTask: NSURLSessionWebSocketTask,
                 didOpenWithProtocol: String?
             ) {
-                socketEventsList.singleOrNull { it.first == com.architect.titansocket.TitanSocketEvents.CONNECTION_OPENED }?.second?.invoke(
-                    this,
+                socketEventsList.singleOrNull { it.first == TitanSocketEvents.CONNECTION_OPENED }?.second?.invoke(
+                    parentTitan,
                     "CONNECTION SOCKET IS OPEN"
                 )
             }
@@ -38,12 +43,12 @@ actual class TitanSocket actual constructor(
                 reason: NSData?
             ) {
                 socketEventsList.singleOrNull { it.first == com.architect.titansocket.TitanSocketEvents.DISCONNECTION }?.second?.invoke(
-                    this,
+                    parentTitan,
                     "CONNECTION SOCKET IS CLOSED"
                 )
             }
         },
-        delegateQueue = NSOperationQueue.currentQueue()
+        delegateQueue = null
     ).webSocketTaskWithURL(NSURL.URLWithString(endpointUrl)!!)
 
     // notifications
@@ -83,7 +88,6 @@ actual class TitanSocket actual constructor(
 
 
                     TitanSocketEvents.CONNECTION_OPENED -> {
-
                         socketEventsList.add(
                             Pair(
                                 TitanSocketEvents.CONNECTION_OPENED,
@@ -112,7 +116,6 @@ actual class TitanSocket actual constructor(
                 }
             }
         }.build()
-
 
         if (loggingBuilder != null) {
             object : TitanSocketLoggingBuilder {
