@@ -2,7 +2,6 @@ import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.kotlinCocoapods)
     alias(libs.plugins.androidLibrary)
     kotlin("plugin.serialization") version "1.9.22"
 
@@ -10,10 +9,29 @@ plugins {
     id("signing")
     id("maven-publish")
     id("com.vanniktech.maven.publish") version "0.28.0"
+    id("io.github.ttypic.swiftklib")
 }
 
 kotlin {
-    targetHierarchy.default()
+    kotlin.applyDefaultHierarchyTemplate()
+
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64(),
+    ).forEach {
+        it.compilations {
+            val main by getting {
+                cinterops {
+                    create("TitanEngine")
+                }
+            }
+        }
+        it.binaries.framework {
+            baseName = "shared"
+        }
+    }
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -21,23 +39,10 @@ kotlin {
             }
         }
 
-        publishLibraryVariants("release", "debug")
+        publishLibraryVariants("release")
     }
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    jvm()
 
-    cocoapods {
-        summary = "Some description for the Shared Module"
-        homepage = "Link to the Shared Module homepage"
-        version = "1.0"
-        ios.deploymentTarget = "13.0"
-        framework {
-            baseName = "shared"
-            isStatic = true
-        }
-    }
+    jvm()
 
     sourceSets {
         val commonMain by getting {
@@ -63,17 +68,14 @@ kotlin {
         }
 
 //        // iOS Targets
+        val iosArm64Main by getting
+        val iosX64Main by getting
+        val iosSimulatorArm64Main by getting
         val iosMain by getting {
             dependsOn(commonMain)
-        }
-        val iosArm64Main by getting {
-            dependsOn(iosMain)
-        }
-        val iosX64Main by getting {
-            dependsOn(iosMain)
-        }
-        val iosSimulatorArm64Main by getting {
-            dependsOn(iosMain)
+            iosX64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosSimulatorArm64Main.dependsOn(this)
         }
     }
 }
@@ -84,7 +86,7 @@ afterEvaluate {
         coordinates(
             groupId = "io.github.thearchitect123",
             artifactId = "titansocket",
-            version = "0.2.0"
+            version = "0.2.7"
         )
 
         // Configure POM metadata for the published artifact
@@ -133,5 +135,12 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
+swiftklib {
+    create("TitanEngine") {
+        path = file("native/TitanEngine")
+        packageName("com.ttypic.objclibs.titanEngine")
     }
 }

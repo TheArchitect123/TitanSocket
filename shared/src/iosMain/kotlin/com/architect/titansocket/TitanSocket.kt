@@ -1,59 +1,21 @@
 package com.architect.titansocket
 
-import platform.Foundation.NSData
-import platform.Foundation.NSOperationQueue
-import platform.Foundation.NSString
-import platform.Foundation.NSURL
-import platform.Foundation.NSURLSession
-import platform.Foundation.NSURLSessionConfiguration
-import platform.Foundation.NSURLSessionWebSocketCloseCode
-import platform.Foundation.NSURLSessionWebSocketDelegateProtocol
-import platform.Foundation.NSURLSessionWebSocketMessage
-import platform.Foundation.NSURLSessionWebSocketTask
-import platform.Foundation.NSUTF8StringEncoding
-import platform.Foundation.create
-import platform.darwin.NSObject
+import com.ttypic.objclibs.titanEngine.WebSocket
+import kotlinx.cinterop.ExperimentalForeignApi
 
+@OptIn(ExperimentalForeignApi::class)
 actual class TitanSocket actual constructor(
-    endpoint: String,
+    private val endpoint: String,
     config: TitanSocketOptions?,
     build: TitanSocketBuilder.() -> Unit,
     loggingBuilder: Logger?
 ) {
-    private val parentTitan = this
-    private val endpointUrl = endpoint
-    private val webSocketClient = NSURLSession.sessionWithConfiguration(
-        configuration = NSURLSessionConfiguration.defaultSessionConfiguration(),
-        delegate = object : NSObject(), NSURLSessionWebSocketDelegateProtocol {
-            override fun URLSession(
-                session: NSURLSession,
-                webSocketTask: NSURLSessionWebSocketTask,
-                didOpenWithProtocol: String?
-            ) {
-                socketEventsList.singleOrNull { it.first == TitanSocketEvents.CONNECTION_OPENED }?.second?.invoke(
-                    parentTitan,
-                    "CONNECTION SOCKET IS OPEN"
-                )
-            }
-
-            override fun URLSession(
-                session: NSURLSession,
-                webSocketTask: NSURLSessionWebSocketTask,
-                didCloseWithCode: NSURLSessionWebSocketCloseCode,
-                reason: NSData?
-            ) {
-                socketEventsList.singleOrNull { it.first == com.architect.titansocket.TitanSocketEvents.DISCONNECTION }?.second?.invoke(
-                    parentTitan,
-                    "CONNECTION SOCKET IS CLOSED"
-                )
-            }
-        },
-        delegateQueue = null
-    ).webSocketTaskWithURL(NSURL.URLWithString(endpointUrl)!!)
-
     // notifications
-    val socketEventsList = mutableListOf<Pair<String, ClientAction>>()
-    val loggingSocketEventsList = mutableListOf<Pair<String, ClientAction>>()
+    private val socketEventsList = mutableListOf<Pair<String, ClientAction>>()
+    private val loggingSocketEventsList = mutableListOf<Pair<String, ClientAction>>()
+
+    // web socket service
+    private val socketService = WebSocket(endpoint)
 
     init {
         object : TitanSocketBuilder {
@@ -143,54 +105,54 @@ actual class TitanSocket actual constructor(
 
             }.loggingBuilder()
         }
-    }
 
-    actual fun broadcast(data: String) {
-        val message = NSURLSessionWebSocketMessage(data)
-        webSocketClient.sendMessage(message) { error ->
-            if (error == null) {
-                webSocketClient.receiveMessageWithCompletionHandler { message, nsError ->
-                    when {
-                        nsError != null -> {
-                            socketEventsList.singleOrNull { it.first == TitanSocketEvents.FAILURE }?.second?.invoke(
-                                this,
-                                "TITAN FAILED TO SEND MESSAGE TO $endpointUrl, ${nsError.localizedDescription}"
-                            )
-                        }
+        socketService.setAllowSelfSignedSSL(
+            config?.trustAllCerts ?: false
+        ) // if socket connection needs to allow all self signed certificates (by passes transport security on iOS)
 
-                        message != null -> {
-                            message.data?.let {
-                                socketEventsList.singleOrNull { it.first == TitanSocketEvents.MESSAGE_RECEIVED }?.second?.invoke(
-                                    this,
-                                    NSString.create(
-                                        data = it,
-                                        encoding = NSUTF8StringEncoding
-                                    )?.toString()!!
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
-                socketEventsList.singleOrNull { it.first == TitanSocketEvents.FAILURE }?.second?.invoke(
-                    this,
-                    "TITAN FAILED TO SEND MESSAGE TO $endpointUrl, ${error.localizedDescription}"
-                )
-            }
+        // generate subscriptions
+        socketService.event().setOpen {
+            socketEventsList.singleOrNull { q -> q.first == TitanSocketEvents.CONNECTION_OPENED }?.second?.invoke(
+                this,
+                "SOCKET CONNECTION IS OPEN"
+            )
+        }
+        socketService.event().setClose { l, s, b ->
+            socketEventsList.singleOrNull { q -> q.first == TitanSocketEvents.DISCONNECTION }?.second?.invoke(
+                this,
+                "SOCKET CONNECTION IS CLOSED"
+            )
+        }
+
+        socketService.event().setError {
+            socketEventsList.singleOrNull { q -> q.first == TitanSocketEvents.FAILURE }?.second?.invoke(
+                this,
+                "TITAN FAILED TO SEND MESSAGE TO $endpoint, ${it?.localizedDescription}"
+            )
+        }
+
+        socketService.event().setMessage {
+            socketEventsList.singleOrNull { q -> q.first == TitanSocketEvents.MESSAGE_RECEIVED }?.second?.invoke(
+                this,
+                it as String
+            )
         }
     }
 
-    actual fun broadcast(data: ByteArray) {
-
+    actual fun broadcast(data: String) {
+        socketService.send(data)
     }
 
+    actual fun broadcast(data: ByteArray) {
+        socketService.send(data)
+    }
 
     actual fun disconnectSocket() {
-        webSocketClient.cancel()
+        socketService.close(0, "Socket connection is closed")
     }
 
     actual fun connectSocket() {
-        webSocketClient.resume()
+        socketService.open(endpoint)
     }
 
     actual fun isSocketConnected(): Boolean {

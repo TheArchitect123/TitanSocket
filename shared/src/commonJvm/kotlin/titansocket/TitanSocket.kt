@@ -35,8 +35,8 @@ actual class TitanSocket actual constructor(
     private var webSocket: WebSocket? = null
 
     // notifications
-    val socketEventsList = mutableListOf<Pair<String, ClientAction>>()
-    val loggingSocketEventsList = mutableListOf<Pair<String, ClientAction>>()
+    internal val socketEventsList = mutableListOf<Pair<String, ClientAction>>()
+    internal val loggingSocketEventsList = mutableListOf<Pair<String, ClientAction>>()
 
     init {
         endpointUrl = endpoint

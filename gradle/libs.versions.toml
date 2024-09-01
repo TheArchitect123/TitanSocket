@@ -4,10 +4,10 @@ kotlin = "1.9.23"
 droidCompileSdk = "34"
 droidTargetSdk = "34"
 droidMinSdk = "16"
-org-jetbrains-kotlin-jvm = "1.9.22"
+swiftKlib =  "0.6.3"
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
-org-jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "org-jetbrains-kotlin-jvm" }
+swiftklib = { id = "io.github.ttypic.swiftklib", version.ref = "swiftKlib" }
