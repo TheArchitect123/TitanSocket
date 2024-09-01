@@ -19,6 +19,7 @@ A kotlin multiplatform library to manage sockets with support for both iOS & And
   </a>
 </p
 
+
 ## How it works
 TitanSocket handles all the websocket connections, ping & pong between the client & server, and the event notifications for when data is received or broadcasted, or any connectivity status changes happen.
 
