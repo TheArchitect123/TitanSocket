@@ -25,7 +25,7 @@ TitanSocket handles all the websocket connections, ping & pong between the clien
 To get started, import the library into your project:
 
 ```sh
-implementation("io.github.thearchitect123:titansocket:0.2.1")
+implementation("io.github.thearchitect123:titansocket:0.2.7")
 ```
 
 To use TitanSocket, generate an instance of your socket, pass the Url + any Post Connection Logic, and subscribe to the states you wish to connect to:
